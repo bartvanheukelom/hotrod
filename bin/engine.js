@@ -69,13 +69,15 @@ function defClass(namespace, name, constructor, methods) {
 }
 
 function tmp_f5pressed() {
-	global.gameBase = "../../hotrodgame";
+	global.gameBase = "../../tankvolution/hotrodgame";
 	runScript(global.gameBase + "/game.js");
 }
 tmp_f5pressed();
 
+initGraphics();
 try {
 	run();
 } catch (e) {
 	log("Error in run(): " + e.stack);
 }
+destroyGraphics();

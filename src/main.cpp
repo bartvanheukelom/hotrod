@@ -33,6 +33,7 @@ void Finalize();
 // void Reshape(int width, int height);
 
 SDL_Window *mainwindow;
+SDL_GLContext maincontext;
 float aspect;
 GLuint render_prog;
 GLuint vao2;
@@ -345,6 +346,53 @@ void js_log(const FunctionCallbackInfo<Value>& args) {
     cout << endl;
 }
 
+void js_initGraphics(const FunctionCallbackInfo<Value>& args) {
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+        throw runtime_error("Unable to initialize SDL");
+
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
+
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
+//    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+//    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+
+    mainwindow = SDL_CreateWindow(
+        "TankEvo", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    	1600, 900, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+    );
+    if (mainwindow == nullptr)
+        throw runtime_error(string("SDL_CreateWindow error ") + SDL_GetError());
+
+    maincontext = SDL_GL_CreateContext(mainwindow);
+
+    GLenum rev;
+    glewExperimental = GL_TRUE;
+    rev = glewInit();
+
+    if (GLEW_OK != rev) {
+        std::cout << "Error: " << glewGetErrorString(rev) << std::endl;
+        exit(1);
+    } else {
+        std::cout << "GLEW Init: Success!" << std::endl;
+    }
+
+    SDL_GL_SetSwapInterval(0);
+
+    Initialize();
+    Reshape();
+    
+}
+
+void js_destroyGraphics(const FunctionCallbackInfo<Value>& args) {
+    SDL_GL_DeleteContext(maincontext);
+    SDL_DestroyWindow(mainwindow);
+    SDL_Quit();
+}
 
 Local<Context> setUpContext() {
 
@@ -360,17 +408,27 @@ Local<Context> setUpContext() {
     auto glob = ctx->Global();
     glob->Set(ctx, jsString("global"), glob);
 
+    #define FUN(NAME) glob->Set(ctx, jsString(#NAME), Function::New(ctx, &js_ ## NAME).ToLocalChecked());
+
     // define functions
-    glob->Set(ctx, jsString("runScript"),
-        Function::New(ctx, &js_runScript).ToLocalChecked());
+    FUN(runScript)
+    // glob->Set(ctx, jsString("runScript"),
+    //     Function::New(ctx, &js_runScript).ToLocalChecked());
     glob->Set(ctx, jsString("nativeStep"),
         Function::New(ctx, &js_nativeStep).ToLocalChecked());
     glob->Set(ctx, jsString("log"),
         Function::New(ctx, &js_log).ToLocalChecked());
+        
+    glob->Set(ctx, jsString("initGraphics"),
+        Function::New(ctx, &js_initGraphics).ToLocalChecked());
+    glob->Set(ctx, jsString("destroyGraphics"),
+        Function::New(ctx, &js_destroyGraphics).ToLocalChecked());
     glob->Set(ctx, jsString("prepareBoxRender"),
         Function::New(ctx, &js_prepareBoxRender).ToLocalChecked());
     glob->Set(ctx, jsString("renderBox"),
         Function::New(ctx, &js_renderBox).ToLocalChecked());
+
+    #undef FUN
 
     bullet_setUpContext(ctx);
 
@@ -378,61 +436,6 @@ Local<Context> setUpContext() {
 }
 
 int main(int argc, char** argv){
-
-    cout << argc << endl;
-    if (argc == 2) headless = true;
-    else headless = false;
-
-    SDL_GLContext* maincontextp;
-    if (!headless) {
-
-        SDL_GLContext maincontext;
-        maincontextp = &maincontext;
-
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-            std::cout << "Unable to initialize SDL";
-            return 1;
-        }
-
-        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
-
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-    //    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    //    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-
-        mainwindow = SDL_CreateWindow(
-            "TankEvo", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        	1600, 900, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
-        );
-        if (mainwindow == nullptr) {
-            std::cout << "SDL Error: " << SDL_GetError() << std::endl;
-            SDL_Quit();
-            return 1;
-        }
-
-        maincontext = SDL_GL_CreateContext(mainwindow);
-
-        GLenum rev;
-        glewExperimental = GL_TRUE;
-        rev = glewInit();
-
-        if (GLEW_OK != rev){
-            std::cout << "Error: " << glewGetErrorString(rev) << std::endl;
-            exit(1);
-        } else {
-            std::cout << "GLEW Init: Success!" << std::endl;
-        }
-
-        SDL_GL_SetSwapInterval(0);
-
-        Initialize();
-        Reshape();
-        
-    }
 
     // Initialize V8.
     V8::InitializeICU();
@@ -466,12 +469,5 @@ int main(int argc, char** argv){
     V8::ShutdownPlatform();
 
     Finalize();
-
-    if (!headless) {
-        SDL_GL_DeleteContext(*maincontextp);
-        SDL_DestroyWindow(mainwindow);
-        SDL_Quit();
-    }
-
 
 }

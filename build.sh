@@ -7,8 +7,8 @@ set -e
 echo "========================== BUILD ===================================="
 
 if [[ -d bin ]]; then
-    touch bin/tankevo-filler # otherwise line below might err
-    rm bin/tankevo*
+    touch bin/hotrod-filler # otherwise line below might err
+    rm bin/hotrod*
 else
     mkdir bin
 fi
@@ -24,7 +24,7 @@ warnings="-pedantic -Wall -Wno-unused-result -Wno-missing-field-initializers -We
 
 commonOpts="-std=c++11 -O3 $srcFiles $warnings"
 
-appName=tankevo
+appName=hotrod
 
 echo "++++ linux64"
 g++ $commonOpts \
