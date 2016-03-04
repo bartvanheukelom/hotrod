@@ -21,3 +21,4 @@ Local<String> jsString(const string& src);
 string fromJsString(const Handle<Value>& src);
 
 void bullet_setUpContext(Local<Context> ctx);
+void graphics_setUpContext(Local<Context> ctx);
