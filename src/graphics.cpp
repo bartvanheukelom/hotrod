@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <SDL2/SDL.h>
+#include <btBulletDynamicsCommon.h>
 
 #include "common.h"
 
@@ -231,6 +233,7 @@ void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
 void js_renderBox(const FunctionCallbackInfo<Value>& args) {
     HandleScope fhs(theOneIsolate);
 
+    // ATTRIBUTE_ALIGNED16 is a bullet thing TODO what's its use, again?
     glm::mat4 ATTRIBUTE_ALIGNED16(model_matrix), mvp;
     glm::vec3 inColor;
 
@@ -265,6 +268,41 @@ void js_renderBox(const FunctionCallbackInfo<Value>& args) {
 
 }
 
+void js_nativeStep(const FunctionCallbackInfo<Value>& args) {
+    HandleScope fhs(theOneIsolate);
+
+    SDL_GL_SwapWindow(mainwindow);
+
+    // TODO headlesssss
+
+    SDL_Event event;
+    bool doQuit = false;
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+            doQuit = true;
+            break;
+        } else if (event.type == SDL_WINDOWEVENT) {
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                //Reshape(); TODO fix
+            }
+        } else if (event.type == SDL_KEYDOWN) {
+            switch (event.key.keysym.sym) {
+                case SDLK_F5:
+                {
+                    eval(args.This()->CreationContext(), "tmp_f5pressed()");
+                } break;
+
+                case SDLK_ESCAPE:
+                    doQuit = true;
+                    break;
+                default: break;
+            }
+        }
+    }
+
+    args.GetReturnValue().Set(!doQuit);
+
+}
 
 void graphics_setUpContext(Local<Context> ctx) {
 
@@ -273,6 +311,7 @@ void graphics_setUpContext(Local<Context> ctx) {
 	#define FUN(NAME) glob->Set(ctx, jsString(#NAME), Function::New(ctx, &js_ ## NAME).ToLocalChecked());
 	FUN(initGraphics)
 	FUN(destroyGraphics)
+    FUN(nativeStep)
 	FUN(prepareBoxRender)
 	FUN(renderBox)
 	#undef FUN

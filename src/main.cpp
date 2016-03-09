@@ -83,42 +83,6 @@ void eval(Local<Context> ctx, const string& js) {
     code->Run(ctx);
 }
 
-void js_nativeStep(const FunctionCallbackInfo<Value>& args) {
-    HandleScope fhs(theOneIsolate);
-
-    SDL_GL_SwapWindow(mainwindow);
-
-    // TODO headlesssss
-
-    SDL_Event event;
-    bool doQuit = false;
-    while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) {
-            doQuit = true;
-            break;
-        } else if (event.type == SDL_WINDOWEVENT) {
-            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                //Reshape(); TODO fix
-            }
-        } else if (event.type == SDL_KEYDOWN) {
-            switch (event.key.keysym.sym) {
-                case SDLK_F5:
-                {
-                    eval(args.This()->CreationContext(), "tmp_f5pressed()");
-                } break;
-
-                case SDLK_ESCAPE:
-                    doQuit = true;
-                    break;
-                default: break;
-            }
-        }
-    }
-
-    args.GetReturnValue().Set(!doQuit);
-
-}
-
 void js_log(const FunctionCallbackInfo<Value>& args) {
     for (int a = 0; a < args.Length(); a++) {
         if (a != 0) cout << " ";
@@ -146,7 +110,6 @@ Local<Context> setUpContext() {
     #define FUN(NAME) glob->Set(ctx, jsString(#NAME), Function::New(ctx, &js_ ## NAME).ToLocalChecked());
 
     FUN(runScript)
-    FUN(nativeStep)
     FUN(log)
 
     #undef FUN

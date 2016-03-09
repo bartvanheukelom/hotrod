@@ -17,6 +17,7 @@ using namespace v8;
 extern Isolate* theOneIsolate;
 extern Persistent<ObjectTemplate> jsPointerTpl;
 
+void eval(Local<Context> ctx, const string& js);
 Local<String> jsString(const string& src);
 string fromJsString(const Handle<Value>& src);
 
