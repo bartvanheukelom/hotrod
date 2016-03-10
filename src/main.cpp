@@ -56,6 +56,12 @@ string fromJsString(const Handle<Value>& src) {
     return string(*u, static_cast<size_t>(u.length()));
 }
 
+Local<Object> createPointerObject(void* ptr) {
+    auto ret = jsPointerTpl.Get(theOneIsolate)->NewInstance();
+    ret->SetAlignedPointerInInternalField(0, ptr);
+    return ret;
+}
+
 void runScript(Local<Context> context, string filename) {
     HandleScope fhs(theOneIsolate);
 

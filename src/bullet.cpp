@@ -9,13 +9,32 @@ using namespace std;
 using namespace v8;
 
 void js_Box_destroy(const FunctionCallbackInfo<Value>& args) {
-    HandleScope fhs(theOneIsolate);
-    cout << "super destroy box" << endl;
-
-    auto box = static_cast<btRigidBody*>(args.This()->GetAlignedPointerFromInternalField(0));
-
+    // HandleScope fhs(theOneIsolate);
+    // cout << "super destroy box" << endl;
+    //
+    // auto box = static_cast<btRigidBody*>(args.This()->GetAlignedPointerFromInternalField(0));
+    //
 }
 
+void js_BulletBody_applyImpulse(const FunctionCallbackInfo<Value>& args) {
+    HandleScope fhs(theOneIsolate);
+    auto body = getPointerFromObject<btRigidBody>(args.This());
+    body->applyCentralImpulse(btVector3(
+        Local<Number>::Cast(args[0])->Value(),
+        Local<Number>::Cast(args[1])->Value(),
+        Local<Number>::Cast(args[2])->Value()
+    ));
+}
+
+void js_BulletBody_getPosition(const FunctionCallbackInfo<Value>& args) {
+    HandleScope fhs(theOneIsolate);
+    auto body = getPointerFromObject<btRigidBody>(args.This());
+    auto pos = body->getCenterOfMassPosition();
+    auto ctx = args.This()->CreationContext();
+    auto dest = Local<Object>::Cast(args[0]);
+    dest->Set(ctx, jsString("x"), Number::New(theOneIsolate, pos.x()));
+    dest->Set(ctx, jsString("y"), Number::New(theOneIsolate, pos.y()));
+}
 
 Persistent<FunctionTemplate> BulletWorldTemplate;
 
@@ -31,6 +50,7 @@ public:
         cout << "c++btCreateWorld" << endl;
 
         auto w = new js_BulletWorld();
+        args.This()->SetAlignedPointerInInternalField(0, w);
 
         btDefaultCollisionConfiguration* collisionConfiguration =
                 new btDefaultCollisionConfiguration();
@@ -43,14 +63,9 @@ public:
         );
         w->physicsWorld->setGravity(btVector3(0,0,-30));
 
-        w->collisionShapes =
-            new btAlignedObjectArray<btCollisionShape*>();
+        w->collisionShapes = new btAlignedObjectArray<btCollisionShape*>();
 
         // TODO clean up after GC
-
-        auto jsThis = args.This();
-        jsThis->SetAlignedPointerInInternalField(0, w);
-
 
     }
     
@@ -90,6 +105,42 @@ public:
         getThis(args)->physicsWorld->stepSimulation(Local<Number>::Cast(args[0])->Value(), 10);
     }
 
+    static void createSphere(const FunctionCallbackInfo<Value>& args) {
+        HandleScope fhs(theOneIsolate);
+
+        auto w = getThis(args);
+
+        btCollisionShape* colShape = new btSphereShape(Local<Number>::Cast(args[0])->Value());
+        w->collisionShapes->push_back(colShape);
+
+        btTransform startTransform;
+        startTransform.setIdentity();
+        startTransform.setOrigin(btVector3(
+            Local<Number>::Cast(args[1])->Value(),
+            Local<Number>::Cast(args[2])->Value(),
+            Local<Number>::Cast(args[3])->Value()
+        ));
+
+        btScalar mass = 1;
+        btVector3 localInertia(0,0,0);
+        colShape->calculateLocalInertia(mass,localInertia);
+
+        btDefaultMotionState* boxMotionState = new btDefaultMotionState(startTransform);
+        btRigidBody* body = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(mass,boxMotionState,colShape,localInertia));
+
+        w->physicsWorld->addRigidBody(body);
+
+        auto ret = createPointerObject(body);
+        args.GetReturnValue().Set(ret);
+        auto ctx = args.This()->CreationContext();
+        ret->Set(ctx, jsString("applyImpulse"),
+            Function::New(ctx, &js_BulletBody_applyImpulse).ToLocalChecked());
+        ret->Set(ctx, jsString("getPosition"),
+            Function::New(ctx, &js_BulletBody_getPosition).ToLocalChecked());
+
+        
+
+    }
 
     static void createBox(const FunctionCallbackInfo<Value>& args) {
         HandleScope fhs(theOneIsolate);
@@ -136,12 +187,12 @@ public:
     }
     
     static void defineJsFunctions(Local<Object> proto, Local<Context> ctx) {
-        proto->Set(ctx, jsString("stepSimulation"),
-            Function::New(ctx, &stepSimulation).ToLocalChecked());
-            proto->Set(ctx, jsString("createStaticBox"),
-                Function::New(ctx, &createStaticBox).ToLocalChecked());
-        proto->Set(ctx, jsString("createBox"),
-            Function::New(ctx, &createBox).ToLocalChecked());
+        #define FUN(NAME) proto->Set(ctx, jsString(#NAME), Function::New(ctx, &NAME).ToLocalChecked());
+        FUN(stepSimulation)
+        FUN(createStaticBox)
+        FUN(createBox)
+        FUN(createSphere)
+        #undef FUN
     }
     
 private:

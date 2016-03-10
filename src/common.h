@@ -20,6 +20,12 @@ extern Persistent<ObjectTemplate> jsPointerTpl;
 void eval(Local<Context> ctx, const string& js);
 Local<String> jsString(const string& src);
 string fromJsString(const Handle<Value>& src);
+Local<Object> createPointerObject(void* ptr);
+
+template <typename T>
+T* getPointerFromObject(Local<Object> obj) {
+	return static_cast<T*>(obj->GetAlignedPointerFromInternalField(0));
+}
 
 void bullet_setUpContext(Local<Context> ctx);
 void graphics_setUpContext(Local<Context> ctx);

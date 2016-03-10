@@ -158,7 +158,8 @@ void js_initGraphics(const FunctionCallbackInfo<Value>& args) {
         std::cout << "GLEW Init: Success!" << std::endl;
     }
 
-    SDL_GL_SetSwapInterval(0);
+    // vsync 0 = off 1 = on
+    SDL_GL_SetSwapInterval(1);
 
     Initialize();
     Reshape();
@@ -234,7 +235,7 @@ void js_renderBox(const FunctionCallbackInfo<Value>& args) {
     HandleScope fhs(theOneIsolate);
 
     // ATTRIBUTE_ALIGNED16 is a bullet thing TODO what's its use, again?
-    glm::mat4 ATTRIBUTE_ALIGNED16(model_matrix), mvp;
+    ATTRIBUTE_ALIGNED16(glm::mat4) model_matrix, mvp;
     glm::vec3 inColor;
 
     float family;
@@ -255,9 +256,9 @@ void js_renderBox(const FunctionCallbackInfo<Value>& args) {
         btTransform trans;
         box->getMotionState()->getWorldTransform(trans);
         trans.getOpenGLMatrix(glm::value_ptr(model_matrix));
-        inColor.x = 0.5;
-        inColor.y = 0;
-        inColor.z = 0;
+        inColor.x = static_cast<float>(Local<Number>::Cast(args[1])->Value());
+        inColor.y = static_cast<float>(Local<Number>::Cast(args[2])->Value());
+        inColor.z = static_cast<float>(Local<Number>::Cast(args[3])->Value());
     }
 
 
