@@ -46,17 +46,6 @@ public:
         w->collisionShapes =
             new btAlignedObjectArray<btCollisionShape*>();
 
-        // make ground
-        btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(150.),btScalar(150.),btScalar(2)));
-        w->collisionShapes->push_back(groundShape);
-        btTransform groundTransform;
-        groundTransform.setIdentity();
-        groundTransform.setOrigin(btVector3(0,0,-1));
-        btDefaultMotionState* groundMotionState = new btDefaultMotionState(groundTransform);
-        btRigidBody::btRigidBodyConstructionInfo groundInfo(0,groundMotionState,groundShape,btVector3(0,0,0));
-        btRigidBody* groundBody = new btRigidBody(groundInfo);
-        w->physicsWorld->addRigidBody(groundBody);
-
         // TODO clean up after GC
 
         auto jsThis = args.This();
@@ -64,12 +53,41 @@ public:
 
 
     }
+    
+    static void createStaticBox(const FunctionCallbackInfo<Value>& args) {
+        HandleScope fhs(theOneIsolate);
+        
+        auto w = getThis(args);
+        
+        // define and add the shape
+        btCollisionShape* groundShape = new btBoxShape(btVector3(
+            Local<Number>::Cast(args[0])->Value(),
+            Local<Number>::Cast(args[1])->Value(),
+            Local<Number>::Cast(args[2])->Value()
+        ));
+        w->collisionShapes->push_back(groundShape);
+        
+        // define the position
+        btTransform groundTransform;
+        groundTransform.setIdentity();
+        groundTransform.setOrigin(btVector3(
+            Local<Number>::Cast(args[3])->Value(),
+            Local<Number>::Cast(args[4])->Value(),
+            Local<Number>::Cast(args[5])->Value()
+        ));
+        btDefaultMotionState* groundMotionState = new btDefaultMotionState(groundTransform);
+        
+        // create and add the body
+        btRigidBody* groundBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(0, groundMotionState, groundShape));
+        w->physicsWorld->addRigidBody(groundBody);
+        
+        // TODO return something
+
+    }
 
     static void stepSimulation(const FunctionCallbackInfo<Value>& args) {
         HandleScope fhs(theOneIsolate);
-        static_cast<js_BulletWorld*>(
-                args.This()->GetAlignedPointerFromInternalField(0)
-            )->physicsWorld->stepSimulation(Local<Number>::Cast(args[0])->Value(), 10);
+        getThis(args)->physicsWorld->stepSimulation(Local<Number>::Cast(args[0])->Value(), 10);
     }
 
 
@@ -77,9 +95,7 @@ public:
         HandleScope fhs(theOneIsolate);
         //cout << "super create box" << endl;
 
-        auto w = static_cast<js_BulletWorld*>(
-                args.This()->GetAlignedPointerFromInternalField(0)
-            );
+        auto w = getThis(args);
         auto physicsWorld = w->physicsWorld;
         auto collisionShapes = w->collisionShapes;
 
@@ -118,6 +134,20 @@ public:
 
 
     }
+    
+    static void defineJsFunctions(Local<Object> proto, Local<Context> ctx) {
+        proto->Set(ctx, jsString("stepSimulation"),
+            Function::New(ctx, &stepSimulation).ToLocalChecked());
+            proto->Set(ctx, jsString("createStaticBox"),
+                Function::New(ctx, &createStaticBox).ToLocalChecked());
+        proto->Set(ctx, jsString("createBox"),
+            Function::New(ctx, &createBox).ToLocalChecked());
+    }
+    
+private:
+    static js_BulletWorld* getThis(const FunctionCallbackInfo<Value>& args) {
+        return static_cast<js_BulletWorld*>(args.This()->GetAlignedPointerFromInternalField(0));
+    }
 
 };
 
@@ -130,15 +160,13 @@ void bullet_setUpContext(Local<Context> ctx) {
     bwt->SetClassName(jsString("BulletWorld"));
     BulletWorldTemplate.Reset(theOneIsolate, bwt);
 
-    auto glob = ctx->Global();
-
-    // define BulletWorld functions
+    // make BulletWorld available
     auto bwc = bwt->GetFunction(ctx).ToLocalChecked();
-    glob->Set(ctx, jsString("BulletWorld"), bwc);
-    auto bwcp = Local<Object>::Cast(bwc->Get(ctx, jsString("prototype")).ToLocalChecked());
-    bwcp->Set(ctx, jsString("stepSimulation"),
-        Function::New(ctx, &js_BulletWorld::stepSimulation).ToLocalChecked());
-    bwcp->Set(ctx, jsString("createBox"),
-        Function::New(ctx, &js_BulletWorld::createBox).ToLocalChecked());
+    ctx->Global()->Set(ctx, jsString("BulletWorld"), bwc);
+    
+    js_BulletWorld::defineJsFunctions(
+        Local<Object>::Cast(bwc->Get(ctx, jsString("prototype")).ToLocalChecked()),
+        ctx
+    );
 
 }

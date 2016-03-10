@@ -2,40 +2,50 @@
 
 set -e
 appName=hotrod
-# --------- building ------------- #
 
-echo "========================== BUILD ===================================="
+################# CURRENTLY OBSOLETE BECAUSE OF Makefile ##############
+echo
+echo
+echo '#$@#(&$@(#^@!)*^&^#)$@!*#)@*$&!)_%#*$&@!)#!@&#(*@&()%!#'
+echo "This script is currently not the way to build, use make"
+echo '#$@#(&$@(#^@!)*^&^#)$@!*#)@*$&!)_%#*$&@!)#!@&#(*@&()%!#'
+echo
+echo
+echo
+################# CURRENTLY OBSOLETE BECAUSE OF Makefile ##############
 
-pushd bin
+#phases=$1
+p1=$1
+if [ "$p1" == "" ]; then
+    p1=build
+fi
+p2=$2
+function hasPhase {
+    if [[ "$p1" == "$1" || "$p2" == "$1" ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
 
-if [[ ! -d cmake ]]; then
-    mkdir cmake
+if hasPhase build; then
+    
+    echo "========================== BUILD ===================================="
+    
+    mkdir -p bin/cmake
+    pushd bin/cmake
+        cmake ../../
+        make -j16
+        mv $appName ../
+    popd
 fi
 
-#warnings="-pedantic -Wall -Wno-unused-result -Wno-missing-field-initializers -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef"
-##warnings="$warnings -Weffc++"
-##warnings="$warnings -Werror"
-##warnings="$warnings -Wpadded"
+if hasPhase test; then
 
-pushd cmake
-cmake ../../
-make -j16
-popd
+    echo "========================== TEST ===================================="
 
-mv cmake/$appName .
-
-popd
-
-# --------- testing ------------- #
-if [[ "$1" == "test" ]]; then
-	echo testing
     cd bin
     ./$appName
-    echo tested
-fi
-if [[ "$1" == "testh" ]]; then
-	echo testing h
-    cd bin
-    ./$appName headless
-    echo tested
+    echo "Test done"
+
 fi
