@@ -23,7 +23,7 @@ GLuint vao2;
 GLint render_mvp_loc;
 GLint render_inColor_loc;
 glm::mat4 pv;
-glm::vec3 camPos(0, -30, 10);
+glm::vec3 camPos(0, -30, 50);
 float camAngle = 0;
 float camTilt = 0.3;
 glm::vec3 camUp(0,0,1);
@@ -219,7 +219,7 @@ void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
 
 	glm::vec3 camLook(0, 1, 0);
 	rotateVec(camLook, glm::vec3(1,0,0), -(camTilt + (msY-height/2) * 0.003));
-	rotateVec(camLook, camUp, -(camAngle + (msX-width/2) * 0.003));
+	rotateVec(camLook, camUp, -(camAngle + (msX-width/2) * 0.004));
 
     glm::mat4 projection_matrix(glm::frustum(-1.0f, 1.0f, -aspect, aspect, 1.0f, 1500.0f));
 //    glUniformMatrix4fv(render_projection_matrix_loc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
