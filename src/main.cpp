@@ -112,12 +112,10 @@ Local<Context> setUpContext() {
     glob->Set(ctx, jsString("global"), glob);
 
     // --- define functions
-    
-    #define FUN(NAME) glob->Set(ctx, jsString(#NAME), Function::New(ctx, &js_ ## NAME).ToLocalChecked());
 
+    #define FUN(NAME) glob->Set(ctx, jsString(#NAME), Function::New(ctx, &js_ ## NAME).ToLocalChecked());
     FUN(runScript)
     FUN(log)
-
     #undef FUN
 
     bullet_setUpContext(ctx);
@@ -149,7 +147,7 @@ int main(int argc, char** argv){
         Local<Context> context = setUpContext();
         Context::Scope context_scope(context);
 
-        runScript(context, "engine.js");
+        runScript(context, "../js/engine.js");
 
         std::cout << "Quittin'" << std::endl;
     }

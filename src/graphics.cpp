@@ -33,8 +33,8 @@ bool lockCam = false;
 void Initialize() {
 
     ShaderInfo shader_info[] = {
-        { GL_VERTEX_SHADER, "primitive_restart.vs.glsl" },
-        { GL_FRAGMENT_SHADER, "primitive_restart.fs.glsl" },
+        { GL_VERTEX_SHADER, "../res/primitive_restart.vs.glsl" },
+        { GL_FRAGMENT_SHADER, "../res/primitive_restart.fs.glsl" },
         { GL_NONE, NULL }
     };
 
@@ -159,21 +159,22 @@ void js_initGraphics(const FunctionCallbackInfo<Value>& args) {
     }
 
     // vsync 0 = off 1 = on
-    SDL_GL_SetSwapInterval(1);
+    // SDL_GL_SetSwapInterval(1);
+    SDL_GL_SetSwapInterval(0);
 
     Initialize();
     Reshape();
-    
+
 }
 
 void js_destroyGraphics(const FunctionCallbackInfo<Value>& args) {
-	
+
 	Finalize();
-	
+
     SDL_GL_DeleteContext(maincontext);
     SDL_DestroyWindow(mainwindow);
     SDL_Quit();
-	
+
 }
 
 
@@ -208,7 +209,7 @@ void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
 	if (state[SDL_SCANCODE_L]) camAngle += camRotA;
 	if (state[SDL_SCANCODE_I]) camTilt += camRotT;
 	if (state[SDL_SCANCODE_K]) camTilt -= camRotT;
-	
+
 	if (state[SDL_SCANCODE_G]) lockCam = true;
 	if (state[SDL_SCANCODE_H]) lockCam = false;
 
@@ -308,7 +309,7 @@ void js_nativeStep(const FunctionCallbackInfo<Value>& args) {
 void graphics_setUpContext(Local<Context> ctx) {
 
     auto glob = ctx->Global();
-	
+
 	#define FUN(NAME) glob->Set(ctx, jsString(#NAME), Function::New(ctx, &js_ ## NAME).ToLocalChecked());
 	FUN(initGraphics)
 	FUN(destroyGraphics)
@@ -316,5 +317,5 @@ void graphics_setUpContext(Local<Context> ctx) {
 	FUN(prepareBoxRender)
 	FUN(renderBox)
 	#undef FUN
-	
+
 }
