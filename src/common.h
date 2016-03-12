@@ -29,3 +29,4 @@ T* getPointerFromObject(Local<Object> obj) {
 
 void bullet_setUpContext(Local<Context> ctx);
 void graphics_setUpContext(Local<Context> ctx);
+void gl_setUpContext(Local<Context> ctx);

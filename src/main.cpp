@@ -120,6 +120,7 @@ Local<Context> setUpContext() {
 
     bullet_setUpContext(ctx);
     graphics_setUpContext(ctx);
+    gl_setUpContext(ctx);
 
     return ctx;
 }

@@ -183,11 +183,11 @@ void js_destroyGraphics(const FunctionCallbackInfo<Value>& args) {
 void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
     HandleScope fhs(theOneIsolate);
 
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_CULL_FACE);
+    // glEnable(GL_DEPTH_TEST);
 //    glEnable(GL_MULTISAMPLE);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(render_prog);
 
