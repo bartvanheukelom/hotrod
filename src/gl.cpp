@@ -54,98 +54,67 @@ template<> GLuint getArg<GLuint>(ARG) {
     return v8::Local<v8::Uint32>::Cast(arg)->Value();
 }
 
+template <typename P>
+P* abPtr(const v8::Local<v8::Value>& arg) {
+    return reinterpret_cast<P*>(v8::Local<v8::ArrayBuffer>::Cast(arg)->GetContents().Data());
+}
+
 template<> void* getArg<void*>(ARG) {
-    return v8::Local<v8::ArrayBuffer>::Cast(arg)->GetContents().Data();
+    return abPtr<void>(arg);
 }
 template<> void** getArg<void**>(ARG) {
-    return reinterpret_cast<void**>(
-        v8::Local<v8::ArrayBuffer>::Cast(arg)->GetContents().Data()
-    );
+    return abPtr<void*>(arg);
 }
 template<> double* getArg<double*>(ARG) {
-    return reinterpret_cast<double*>(
-        v8::Local<v8::Float64Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<double>(arg);
 }
 template<> float* getArg<float*>(ARG) {
-    return reinterpret_cast<float*>(
-        v8::Local<v8::Float32Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<float>(arg);
 }
 template<> const void* getArg<const void*>(ARG) {
-    return v8::Local<v8::ArrayBuffer>::Cast(arg)->GetContents().Data();
+    return abPtr<const void>(arg);
 }
 template<> const double* getArg<const double*>(ARG) {
-    return reinterpret_cast<const double*>(
-        v8::Local<v8::Float64Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<const double>(arg);
 }
 template<> const float* getArg<const float*>(ARG) {
-    return reinterpret_cast<const float*>(
-        v8::Local<v8::Float32Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<const float>(arg);
 }
-
-
 template<> int8_t* getArg<int8_t*>(ARG) {
-    return reinterpret_cast<int8_t*>(
-        v8::Local<v8::Int8Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<int8_t>(arg);
 }
 template<> uint8_t* getArg<uint8_t*>(ARG) {
-    return reinterpret_cast<uint8_t*>(
-        v8::Local<v8::Uint8Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<uint8_t>(arg);
 }
 template<> int16_t* getArg<int16_t*>(ARG) {
-    return reinterpret_cast<int16_t*>(
-        v8::Local<v8::Int16Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<int16_t>(arg);
 }
 template<> uint16_t* getArg<uint16_t*>(ARG) {
-    return reinterpret_cast<uint16_t*>(
-        v8::Local<v8::Uint16Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<uint16_t>(arg);
 }
 template<> int32_t* getArg<int32_t*>(ARG) {
-    return reinterpret_cast<int32_t*>(
-        v8::Local<v8::Int32Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<int32_t>(arg);
 }
 template<> uint32_t* getArg<uint32_t*>(ARG) {
-    return reinterpret_cast<uint32_t*>(
-        v8::Local<v8::Uint32Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<uint32_t>(arg);
 }
 template<> const int8_t* getArg<const int8_t*>(ARG) {
-    return reinterpret_cast<const int8_t*>(
-        v8::Local<v8::Int8Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<const int8_t>(arg);
 }
 template<> const uint8_t* getArg<const uint8_t*>(ARG) {
-    return reinterpret_cast<const uint8_t*>(
-        v8::Local<v8::Uint8Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<const uint8_t>(arg);
 }
 template<> const int16_t* getArg<const int16_t*>(ARG) {
-    return reinterpret_cast<const int16_t*>(
-        v8::Local<v8::Int16Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<const int16_t>(arg);
 }
 template<> const uint16_t* getArg<const uint16_t*>(ARG) {
-    return reinterpret_cast<const uint16_t*>(
-        v8::Local<v8::Uint16Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<const uint16_t>(arg);
 }
 template<> const int32_t* getArg<const int32_t*>(ARG) {
-    return reinterpret_cast<const int32_t*>(
-        v8::Local<v8::Int32Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<const int32_t>(arg);
 }
 template<> const uint32_t* getArg<const uint32_t*>(ARG) {
-    return reinterpret_cast<const uint32_t*>(
-        v8::Local<v8::Uint32Array>::Cast(arg)->Buffer()->GetContents().Data()
-    );
+    return abPtr<const uint32_t>(arg);
 }
 
 

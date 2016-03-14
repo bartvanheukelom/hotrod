@@ -15,9 +15,10 @@ using namespace std;
 using namespace v8;
 
 extern Isolate* theOneIsolate;
+extern Local<Context>* theContext;
 extern Persistent<ObjectTemplate> jsPointerTpl;
 
-void eval(Local<Context> ctx, const string& js);
+void eval(const Local<Context>& ctx, const string& js);
 Local<String> jsString(const string& src);
 string fromJsString(const Handle<Value>& src);
 Local<Object> createPointerObject(void* ptr);

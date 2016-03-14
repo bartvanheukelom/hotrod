@@ -16,6 +16,7 @@ using namespace v8;
 
 Isolate* theOneIsolate;
 Persistent<ObjectTemplate> jsPointerTpl;
+Local<Context>* theContext;
 
 class ArrayBufferAllocator : public ArrayBuffer::Allocator {
 public:
@@ -83,7 +84,7 @@ void js_runScript(const FunctionCallbackInfo<Value>& args) {
     runScript(args.This()->CreationContext(), fromJsString(args[0]));
 }
 
-void eval(Local<Context> ctx, const string& js) {
+void eval(const Local<Context>& ctx, const string& js) {
     ScriptOrigin org(jsString("eval"));
     auto code = Script::Compile(ctx, jsString(js), &org).ToLocalChecked();
     code->Run(ctx);
@@ -147,6 +148,7 @@ int main(int argc, char** argv){
 
         Local<Context> context = setUpContext();
         Context::Scope context_scope(context);
+        theContext = &context;
 
         runScript(context, "../js/engine.js");
 

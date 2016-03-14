@@ -76,6 +76,12 @@ function tmp_f5pressed() {
 }
 tmp_f5pressed();
 
+global.render_prog = 0;
+function initGraphicsInner(render_prog) {
+
+
+
+}
 initGraphics();
 try {
 	run();
