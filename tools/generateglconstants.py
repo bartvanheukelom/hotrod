@@ -4,7 +4,7 @@ import json
 import re
 
 #input output files
-IN_FILE = 'gl_h.json'
+IN_FILE = 'glew_h.json'
 OUT_FILE = '../js/glconstants.js'
 
 

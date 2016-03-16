@@ -4,7 +4,7 @@ import json
 import re
 
 #input output files
-IN_FILE = 'gl_h.json'
+IN_FILE = 'glew_h.json'
 OUT_FILE = '../src/gl.cpp.incl'
 
 #map some OpenGL types to V8 types
@@ -41,7 +41,7 @@ def main():
             params = func['parameters']
 
             if (func['return_type'] != "void"):
-                print("SKIP not void")
+                print("SKIP " + name + " not void but " + func['return_type'])
                 wl("// SKIP " + name + " because it returns " + func['return_type'])
                 wel()
                 continue
@@ -52,22 +52,37 @@ def main():
                 wel()
                 continue
 
+            for p in params:
+                skip = False
+                t = p['type']
+                if (t.count('(') != 0 or t == 'GLLOGPROCREGAL' or t == 'GLDEBUGPROCAMD' or t == 'GLDEBUGPROCARB' or t == 'GLDEBUGPROC'):
+                    print("SKIP " + name + " because it appears to have a function* param")
+                    wl("// SKIP " + name)
+                    wel()
+                    skip = True
+                    break
+            if (skip): continue
+
             funcNames.append(name)
 
+            if not func['always']:
+                wl("#ifdef " + name)
             wl("FUNCTION_SIGNATURE(" + name + ") {")
             first = True
             wl("\tFUNCTION_BODY_START(" + str(len(params)) + ")")
             wl("\t" + name + "(")
-            for i, type in enumerate(params):
+            for i, p in enumerate(params):
                 if (not first):
                     wl(",")
                 else:
                     first = False
                 #w("\t\tFUNCTION_BODY_ARG(" + str(i) + ", " + type + ")")
-                w("\t\tgetArg<" + type + ">(args[" + str(i) + "])")
+                w("\t\tgetArg<" + p['type'] + ">(args[" + str(i) + "]) /* " + p['full'] + " */")
             wel()
             wl("\t);")
             wl("}")
+            if not func['always']:
+                wl("#endif")
             wel()
 
         wl("DECLARE_FUNCTIONS_START")

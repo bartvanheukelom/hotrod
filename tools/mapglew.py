@@ -19,21 +19,25 @@ constant_pattern = """
     [\s]*
 """
 function_pattern = """
-    typedef[\\s]+
+    (typedef|GLAPI)[\\s]+
     (?P<return_type>[A-Za-z\\*]+)  #Function return type
-    [\\s]+\\(GLAPIENTRY\\s\\*\\s
-    (?P<bigname>[A-Z0-1]+) #Function name
-    \\)\\s\\(
+    [\\s]+\\(?GLAPIENTRY(\\s\\*)?\\s
+    (?P<bigname>[A-Za-z0-1]+) #Function name
+    \\)?\\s\\(
     (?P<parameters>.*)  #Function parameters
     \\);
 """
+bigname_pattern = "GLEW_FUN_EXPORT\\s(?P<bigname>[A-Z0-1]+)\\s(?P<smallname>.+);"
 #precompile regexps
 constant = re.compile(constant_pattern, re.VERBOSE)
 function = re.compile(function_pattern, re.VERBOSE)
+bigname = re.compile(bigname_pattern, re.VERBOSE)
 
 def main():
     json_c, json_f = [], []
     constants = []
+    constantvals = {}
+    bignames = {}
     #open input file
     with open(PATH_GL, 'r') as fin:
         #line accumulator. Function definitions
@@ -41,29 +45,48 @@ def main():
         l = ''
         #get function/constant prototype
         for cont in fin:
-           l += cont.replace('\n', '')
+            l += cont.replace('\n', '')
 
-           #is constant declaration
-           mat = re.match(constant, l)
-           if mat and not mat.group('name') in constants:
-               print("match CONSTANT " + l)
-               constants.append(mat.group('name'))
-               json_c.append({
-                   'name': mat.group('name'),
-                   'value': mat.group('value')
-               })
-           else:
-               #is function declaration
-               mat = re.match(function, l)
-               if mat:
-                   print("match FUNCTION " + l)
-                   json_f.append({
-                       'bigname': mat.group('bigname'),
-                       'return_type': mat.group('return_type'),
-                       'parameters': get_parameters(mat.group('parameters'))
-                   })
+            #is constant declaration
+            mat = re.match(constant, l)
+            if mat and not mat.group('name') in constants:
+                print("match CONSTANT " + l)
+                constants.append(mat.group('name'))
+                constantvals[mat.group('name')] = mat.group('value')
+                json_c.append({
+                    'name': mat.group('name'),
+                    'value': mat.group('value')
+                })
+            else:
+                #is function declaration
+                mat = re.match(function, l)
+                if mat:
+                    print("match FUNCTION " + l)
+                    fj = {
+                        'bigname': mat.group('bigname'),
+                        'return_type': mat.group('return_type'),
+                        'parameters': get_parameters(mat.group('parameters'))
+                    }
+                    fj['always'] = (not mat.group('bigname').startswith('PFNGL'))
+                    if (fj['always']):
+                        bignames[mat.group('bigname')] = mat.group('bigname')
+                    json_f.append(fj)
+                else:
+                    mat = re.match(bigname, l)
+                    if mat:
+                        print("match BIGNAME " + l)
+                        bignames[mat.group('bigname')] = mat.group('smallname') \
+                            .replace("__glew", "gl")
 
-           l = '' #empty line accumulator
+
+            l = '' #empty line accumulator
+
+    for f in json_f:
+        f['name'] = bignames[f['bigname']]
+
+    for c in json_c:
+        while (not is_int_string(c['value'])):
+            c['value'] = constantvals[c['value']]
 
     #dump as JSON
     with open(FILE_JSON, 'w') as fout:
@@ -72,23 +95,61 @@ def main():
             'functions': json_f
         }, indent=4))
 
+def is_int_string(s):
+    if (s.startswith('0x')): return True
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+par_pattern = """
+    (?P<type>
+        const\\s?
+        [A-Za-z0-9_]+
+        \\s|\\*|\\[\\]*
+    )
+    (?P<name>
+        [A-Za-z0-9_]+
+    )
+    (?P<aftername>\\[\\])?
+    ;
+"""
+parp = re.compile(par_pattern, re.VERBOSE)
+
 def get_parameters(params):
     """Returns an ordered list of parameter types"""
 
+    if (params.strip() == 'void'): return []
+
     params_list = []
-    params_aux = params.split(',')
-    passed = False
-    for par in params_aux:
-        if passed and not balanced(params_list[-1]):
-            params_list[-1] += ',' + par
+    for par in params.split(','):
+
+        full = par.strip()
+
+        # cheats
+        if (full == 'const GLvoid*binary'): type = 'const GLvoid*'
+        elif (full == 'GLvoid*binary'): type = 'GLvoid*'
+        elif (full == 'GLvoid*column'): type = 'GLvoid*'
+        elif (full == 'GLvoid*span'): type = 'GLvoid*'
+        elif (full == 'const GLvoid*coords'): type = 'const GLvoid*'
+        elif (full == 'const GLvoid*charcodes'): type = 'const GLvoid*'
+        elif (full == 'const GLvoid*getProcAddress'): type = 'const GLvoid*'
         else:
-            if (par.strip().count(' ') == 0):
-                params_list.append(par.strip())
+            #mat = re.match(parp, full)
+            #if (mat):
+            #    print("matasdas dasd asd     "  + full)
+
+            parparts = full.split(' ')
+            if (len(parparts) == 1 or (len(parparts) == 2 and parparts[0] == 'const')):
+                type = full
             else:
-                #magic
-                param = ' '.join(par.strip().split(' ')[:-1]) + ('*' * (par.count('*') + par.count('[')))
-                if param.strip() != '': params_list.append(param)
-        passed = True
+                partype = parparts[:-1]
+                parname = parparts[-1]
+                type = ' '.join(partype) \
+                    + ('*' * (parname.count('*') + parname.count('[')))
+
+        params_list.append({'full': full, 'type': type})
 
     return params_list
 

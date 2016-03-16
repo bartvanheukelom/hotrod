@@ -39,11 +39,11 @@ void Initialize() {
     };
 
     render_prog = LoadShaders(shader_info);
-
-    eval(*theContext, std::string("initGraphicsInner(") + to_string(render_prog) + ");");
-
     render_mvp_loc = glGetUniformLocation(render_prog, "mvp");
     render_inColor_loc = glGetUniformLocation(render_prog, "inColor");
+    eval(*theContext, std::string("initGraphicsInner(") + to_string(render_prog) + ");");
+
+
 
     GLuint vbo;
 
