@@ -76,14 +76,6 @@ function tmp_f5pressed() {
 }
 tmp_f5pressed();
 
-global.render_prog = 0;
-function initGraphicsInner(render_prog) {
-
-	// let vao2 = new Uint32Array(1);
-	// glGenVertexArrays(1, vao2.buffer);
-    // glBindVertexArray(vao2[0]);
-
-}
 initGraphics();
 try {
 	run();

@@ -70,6 +70,7 @@ template<> uint64_t getArg<uint64_t>(ARG) {
 
 template <typename P>
 P* abPtr(const v8::Local<v8::Value>& arg) {
+    if (arg->IsNumber()) return reinterpret_cast<P*>((size_t) v8::Local<v8::Number>::Cast(arg)->Value());
     if (arg->IsNull()) return nullptr;
     return reinterpret_cast<P*>(v8::Local<v8::ArrayBuffer>::Cast(arg)->GetContents().Data());
 }

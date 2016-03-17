@@ -19,7 +19,7 @@ SDL_Window *mainwindow;
 SDL_GLContext maincontext;
 float aspect;
 GLuint render_prog;
-GLuint vao2;
+// GLuint vao2;
 GLint render_mvp_loc;
 GLint render_inColor_loc;
 glm::mat4 pv;
@@ -42,62 +42,62 @@ void Initialize() {
     render_mvp_loc = glGetUniformLocation(render_prog, "mvp");
     render_inColor_loc = glGetUniformLocation(render_prog, "inColor");
     eval(*theContext, std::string("initGraphicsInner(") + to_string(render_prog) + ");");
-
-
-
-    GLuint vbo;
-
-    glGenVertexArrays(1, &vao2);
-    glBindVertexArray(vao2);
-
-    // Our vertices. Tree consecutive floats give a 3D vertex; Three consecutive vertices give a triangle.
-    // A cube has 6 faces with 2 triangles each, so this makes 6*2=12 triangles, and 12*3 vertices
-    static const GLfloat g_vertex_buffer_data[] = {
-        -1.0f,-1.0f,-1.0f, // triangle 1 : begin
-        -1.0f,-1.0f, 1.0f,
-        -1.0f, 1.0f, 1.0f, // triangle 1 : end
-        1.0f, 1.0f,-1.0f, // triangle 2 : begin
-        -1.0f,-1.0f,-1.0f,
-        -1.0f, 1.0f,-1.0f, // triangle 2 : end
-        1.0f,-1.0f, 1.0f,
-        -1.0f,-1.0f,-1.0f,
-        1.0f,-1.0f,-1.0f,
-        1.0f, 1.0f,-1.0f,
-        1.0f,-1.0f,-1.0f,
-        -1.0f,-1.0f,-1.0f,
-        -1.0f,-1.0f,-1.0f,
-        -1.0f, 1.0f, 1.0f,
-        -1.0f, 1.0f,-1.0f,
-        1.0f,-1.0f, 1.0f,
-        -1.0f,-1.0f, 1.0f,
-        -1.0f,-1.0f,-1.0f,
-        -1.0f, 1.0f, 1.0f,
-        -1.0f,-1.0f, 1.0f,
-        1.0f,-1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,
-        1.0f,-1.0f,-1.0f,
-        1.0f, 1.0f,-1.0f,
-        1.0f,-1.0f,-1.0f,
-        1.0f, 1.0f, 1.0f,
-        1.0f,-1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,
-        1.0f, 1.0f,-1.0f,
-        -1.0f, 1.0f,-1.0f,
-        1.0f, 1.0f, 1.0f,
-        -1.0f, 1.0f,-1.0f,
-        -1.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,
-        -1.0f, 1.0f, 1.0f,
-        1.0f,-1.0f, 1.0f
-    };
-
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    //
+    //
+    //
+    // GLuint vbo;
+    //
+    // // glGenVertexArrays(1, &vao2);
+    // // glBindVertexArray(vao2);
+    //
+    // // Our vertices. Tree consecutive floats give a 3D vertex; Three consecutive vertices give a triangle.
+    // // A cube has 6 faces with 2 triangles each, so this makes 6*2=12 triangles, and 12*3 vertices
+    // static const GLfloat g_vertex_buffer_data[] = {
+    //     -1.0f,-1.0f,-1.0f, // triangle 1 : begin
+    //     -1.0f,-1.0f, 1.0f,
+    //     -1.0f, 1.0f, 1.0f, // triangle 1 : end
+    //     1.0f, 1.0f,-1.0f, // triangle 2 : begin
+    //     -1.0f,-1.0f,-1.0f,
+    //     -1.0f, 1.0f,-1.0f, // triangle 2 : end
+    //     1.0f,-1.0f, 1.0f,
+    //     -1.0f,-1.0f,-1.0f,
+    //     1.0f,-1.0f,-1.0f,
+    //     1.0f, 1.0f,-1.0f,
+    //     1.0f,-1.0f,-1.0f,
+    //     -1.0f,-1.0f,-1.0f,
+    //     -1.0f,-1.0f,-1.0f,
+    //     -1.0f, 1.0f, 1.0f,
+    //     -1.0f, 1.0f,-1.0f,
+    //     1.0f,-1.0f, 1.0f,
+    //     -1.0f,-1.0f, 1.0f,
+    //     -1.0f,-1.0f,-1.0f,
+    //     -1.0f, 1.0f, 1.0f,
+    //     -1.0f,-1.0f, 1.0f,
+    //     1.0f,-1.0f, 1.0f,
+    //     1.0f, 1.0f, 1.0f,
+    //     1.0f,-1.0f,-1.0f,
+    //     1.0f, 1.0f,-1.0f,
+    //     1.0f,-1.0f,-1.0f,
+    //     1.0f, 1.0f, 1.0f,
+    //     1.0f,-1.0f, 1.0f,
+    //     1.0f, 1.0f, 1.0f,
+    //     1.0f, 1.0f,-1.0f,
+    //     -1.0f, 1.0f,-1.0f,
+    //     1.0f, 1.0f, 1.0f,
+    //     -1.0f, 1.0f,-1.0f,
+    //     -1.0f, 1.0f, 1.0f,
+    //     1.0f, 1.0f, 1.0f,
+    //     -1.0f, 1.0f, 1.0f,
+    //     1.0f,-1.0f, 1.0f
+    // };
+    //
+    // glGenBuffers(1, &vbo);
+    // glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    // glEnableVertexAttribArray(0);
+    //
+    // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 }
 
@@ -110,7 +110,7 @@ void Finalize() {
     glUseProgram(0);
     glDeleteProgram(render_prog);
     // glDeleteBuffers(1, &vbo);
-    glDeleteVertexArrays(1, &vao2);
+    // glDeleteVertexArrays(1, &vao2);
 }
 
 void Reshape() {
@@ -215,6 +215,9 @@ void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
 
 	if (state[SDL_SCANCODE_G]) lockCam = true;
 	if (state[SDL_SCANCODE_H]) lockCam = false;
+    
+    if (state[SDL_SCANCODE_V]) SDL_GL_SetSwapInterval(1);
+    if (state[SDL_SCANCODE_B]) SDL_GL_SetSwapInterval(0);
 
     if (!lockCam) SDL_GetMouseState(&msX, &msY);
 
@@ -232,7 +235,7 @@ void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
 
     // ----------- cubes ------------- //
 
-    glBindVertexArray(vao2);
+    // glBindVertexArray(vao2);
 }
 
 void js_renderBox(const FunctionCallbackInfo<Value>& args) {
