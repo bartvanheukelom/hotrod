@@ -3,11 +3,18 @@ appName=hotrod
 # this is the default because it's the first one
 br: build run
 
+generate:
+	cd tools && ./mapglew.py
+	cd tools && ./generategl.py
+	cd tools && ./generateglconstants.py
+
 build:
 	mkdir -p bin/cmake
 	cd bin/cmake && cmake ../../
 	make -C bin/cmake -j16
 	mv bin/cmake/$(appName) bin/
+
+full: generate build
 	
 run:
 	cd bin && ./$(appName)
