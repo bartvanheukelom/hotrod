@@ -42,62 +42,6 @@ void Initialize() {
     render_mvp_loc = glGetUniformLocation(render_prog, "mvp");
     render_inColor_loc = glGetUniformLocation(render_prog, "inColor");
     eval(*theContext, std::string("initGraphicsInner(") + to_string(render_prog) + ");");
-    //
-    //
-    //
-    // GLuint vbo;
-    //
-    // // glGenVertexArrays(1, &vao2);
-    // // glBindVertexArray(vao2);
-    //
-    // // Our vertices. Tree consecutive floats give a 3D vertex; Three consecutive vertices give a triangle.
-    // // A cube has 6 faces with 2 triangles each, so this makes 6*2=12 triangles, and 12*3 vertices
-    // static const GLfloat g_vertex_buffer_data[] = {
-    //     -1.0f,-1.0f,-1.0f, // triangle 1 : begin
-    //     -1.0f,-1.0f, 1.0f,
-    //     -1.0f, 1.0f, 1.0f, // triangle 1 : end
-    //     1.0f, 1.0f,-1.0f, // triangle 2 : begin
-    //     -1.0f,-1.0f,-1.0f,
-    //     -1.0f, 1.0f,-1.0f, // triangle 2 : end
-    //     1.0f,-1.0f, 1.0f,
-    //     -1.0f,-1.0f,-1.0f,
-    //     1.0f,-1.0f,-1.0f,
-    //     1.0f, 1.0f,-1.0f,
-    //     1.0f,-1.0f,-1.0f,
-    //     -1.0f,-1.0f,-1.0f,
-    //     -1.0f,-1.0f,-1.0f,
-    //     -1.0f, 1.0f, 1.0f,
-    //     -1.0f, 1.0f,-1.0f,
-    //     1.0f,-1.0f, 1.0f,
-    //     -1.0f,-1.0f, 1.0f,
-    //     -1.0f,-1.0f,-1.0f,
-    //     -1.0f, 1.0f, 1.0f,
-    //     -1.0f,-1.0f, 1.0f,
-    //     1.0f,-1.0f, 1.0f,
-    //     1.0f, 1.0f, 1.0f,
-    //     1.0f,-1.0f,-1.0f,
-    //     1.0f, 1.0f,-1.0f,
-    //     1.0f,-1.0f,-1.0f,
-    //     1.0f, 1.0f, 1.0f,
-    //     1.0f,-1.0f, 1.0f,
-    //     1.0f, 1.0f, 1.0f,
-    //     1.0f, 1.0f,-1.0f,
-    //     -1.0f, 1.0f,-1.0f,
-    //     1.0f, 1.0f, 1.0f,
-    //     -1.0f, 1.0f,-1.0f,
-    //     -1.0f, 1.0f, 1.0f,
-    //     1.0f, 1.0f, 1.0f,
-    //     -1.0f, 1.0f, 1.0f,
-    //     1.0f,-1.0f, 1.0f
-    // };
-    //
-    // glGenBuffers(1, &vbo);
-    // glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    // glEnableVertexAttribArray(0);
-    //
-    // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 }
 
@@ -186,14 +130,6 @@ void js_destroyGraphics(const FunctionCallbackInfo<Value>& args) {
 void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
     HandleScope fhs(theOneIsolate);
 
-    // glEnable(GL_CULL_FACE);
-    // glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_MULTISAMPLE);
-
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glUseProgram(render_prog);
-
     const Uint8* state = SDL_GetKeyboardState(nullptr);
 
     // movement
@@ -229,13 +165,9 @@ void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
 	rotateVec(camLook, camUp, -(camAngle + (msX-width/2) * 0.004));
 
     glm::mat4 projection_matrix(glm::frustum(-1.0f, 1.0f, -aspect, aspect, 1.0f, 1500.0f));
-//    glUniformMatrix4fv(render_projection_matrix_loc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
     glm::mat4 view(glm::lookAt(camPos, camPos + camLook, camUp));
     pv = projection_matrix * view;
 
-    // ----------- cubes ------------- //
-
-    // glBindVertexArray(vao2);
 }
 
 void js_renderBox(const FunctionCallbackInfo<Value>& args) {
