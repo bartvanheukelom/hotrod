@@ -18,20 +18,35 @@ constant_pattern = """
     (?P<value>[^\s]+)   #Constant value
     [\s]*
 """
+constant = re.compile(constant_pattern, re.VERBOSE)
+
 function_pattern = """
-    (typedef|GLAPI)[\\s]+
-    (?P<return_type>[A-Za-z\\*]+)  #Function return type
-    [\\s]+\\(?GLAPIENTRY(\\s\\*)?\\s
-    (?P<bigname>[A-Za-z0-1]+) #Function name
-    \\)?\\s\\(
-    (?P<parameters>.*)  #Function parameters
+    typedef\\s+
+    (?P<return_type>.+)
+    \\s*\\(GLAPIENTRY\\s+\\*\\s+
+    (?P<bigname>PFNGL[A-Za-z0-9]+PROC)
+    \\)\\s*\\(
+    (?P<parameters>.*)
     \\);
 """
-bigname_pattern = "GLEW_FUN_EXPORT\\s(?P<bigname>[A-Z0-1]+)\\s(?P<smallname>.+);"
-#precompile regexps
-constant = re.compile(constant_pattern, re.VERBOSE)
 function = re.compile(function_pattern, re.VERBOSE)
+
+functiongl1_pattern = """
+    GLAPI\\s+
+    (?P<return_type>.+)
+    \\s+GLAPIENTRY\\s+
+    (?P<name>gl[A-Za-z0-9]+)
+    \\s+\\(
+    (?P<parameters>.*)
+    \\);
+"""
+functiongl1 = re.compile(functiongl1_pattern, re.VERBOSE)
+
+bigname_pattern = "GLEW_FUN_EXPORT\\s+(?P<bigname>PFNGL[A-Z0-9]+PROC)\\s+(?P<smallname>__glew.+);"
 bigname = re.compile(bigname_pattern, re.VERBOSE)
+
+
+
 
 def main():
     json_c, json_f = [], []
@@ -46,6 +61,9 @@ def main():
         #get function/constant prototype
         for cont in fin:
             l += cont.replace('\n', '')
+
+            if (l.startswith('/* --')): print(l)
+            #if (l.count('GLAPI') != 0): print(l)
 
             #is constant declaration
             mat = re.match(constant, l)
@@ -63,32 +81,49 @@ def main():
                 if mat:
                     print("match FUNCTION " + l)
                     fj = {
-                        'bigname': mat.group('bigname'),
-                        'return_type': mat.group('return_type'),
+                        'always': False,
+                        'bigname': mat.group('bigname').strip(),
+                        'return_type': mat.group('return_type').strip(),
                         'parameters': get_parameters(mat.group('parameters'))
                     }
-                    fj['always'] = (not mat.group('bigname').startswith('PFNGL'))
-                    if (fj['always']):
-                        bignames[mat.group('bigname')] = mat.group('bigname')
                     json_f.append(fj)
                 else:
-                    mat = re.match(bigname, l)
+                    mat = re.match(functiongl1, l)
                     if mat:
-                        print("match BIGNAME " + l)
-                        bignames[mat.group('bigname')] = mat.group('smallname') \
-                            .replace("__glew", "gl")
+                        print("match FUNCTIONGL1 " + l)
+                        fj = {
+                            'always': True,
+                            'name': mat.group('name').strip(),
+                            'return_type': mat.group('return_type').strip(),
+                            'parameters': get_parameters(mat.group('parameters'))
+                        }
+                        json_f.append(fj)
+                    else:
+                        mat = re.match(bigname, l)
+                        if mat:
+                            print("match BIGNAME " + l)
+                            bignames[mat.group('bigname')] = mat.group('smallname') \
+                                .replace("__glew", "gl")
 
 
             l = '' #empty line accumulator
 
+    # resolve bignames to smallnames
     for f in json_f:
-        f['name'] = bignames[f['bigname']]
+        if 'name' in f: continue
+        f['name'] = bignames.pop(f['bigname'])
+        del f['bigname']
 
+    if len(bignames) != 0:
+        print("Unused names")
+        print(bignames)
+
+    # resolve constants to literal values
     for c in json_c:
         while (not is_int_string(c['value'])):
             c['value'] = constantvals[c['value']]
 
-    #dump as JSON
+    # output as JSON
     with open(FILE_JSON, 'w') as fout:
         fout.write(json.dumps({
             'constants': json_c,
@@ -96,6 +131,7 @@ def main():
         }, indent=4))
 
 def is_int_string(s):
+    "Determine whether the given string represents a literal number."
     if (s.startswith('0x')): return True
     try:
         int(s)
@@ -154,7 +190,7 @@ def get_parameters(params):
     return params_list
 
 
-def balanced(l):
-    return l.count('(') == l.count(')')
+
+
 
 if __name__ == '__main__': main()

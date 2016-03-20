@@ -22,7 +22,7 @@ GLuint render_prog;
 // GLuint vao2;
 GLint render_mvp_loc;
 GLint render_inColor_loc;
-glm::mat4 pv;
+glm::mat4 proj_view_matrix;
 glm::vec3 camPos(0, -30, 50);
 float camAngle = 0;
 float camTilt = 0.3;
@@ -41,7 +41,7 @@ void Initialize() {
     render_prog = LoadShaders(shader_info);
     render_mvp_loc = glGetUniformLocation(render_prog, "mvp");
     render_inColor_loc = glGetUniformLocation(render_prog, "inColor");
-    eval(*theContext, std::string("initGraphicsInner(") + to_string(render_prog) + ");");
+    eval(*theContext, std::string("initGraphicsInner(") + to_string(render_prog) + ", " + to_string(render_inColor_loc) + ");");
 
 }
 
@@ -151,7 +151,7 @@ void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
 
 	if (state[SDL_SCANCODE_G]) lockCam = true;
 	if (state[SDL_SCANCODE_H]) lockCam = false;
-    
+
     if (state[SDL_SCANCODE_V]) SDL_GL_SetSwapInterval(1);
     if (state[SDL_SCANCODE_B]) SDL_GL_SetSwapInterval(0);
 
@@ -166,7 +166,7 @@ void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
 
     glm::mat4 projection_matrix(glm::frustum(-1.0f, 1.0f, -aspect, aspect, 1.0f, 1500.0f));
     glm::mat4 view(glm::lookAt(camPos, camPos + camLook, camUp));
-    pv = projection_matrix * view;
+    proj_view_matrix = projection_matrix * view;
 
 }
 
@@ -174,37 +174,25 @@ void js_renderBox(const FunctionCallbackInfo<Value>& args) {
     HandleScope fhs(theOneIsolate);
 
     // ATTRIBUTE_ALIGNED16 is a bullet thing TODO what's its use, again?
-    ATTRIBUTE_ALIGNED16(glm::mat4) model_matrix, mvp;
-    glm::vec3 inColor;
-
-    float family;
+    ATTRIBUTE_ALIGNED16(glm::mat4) model_matrix;
     if (args[0]->IsNumber()) {
         model_matrix = glm::translate(glm::mat4(1), glm::vec3(
             Local<Number>::Cast(args[0])->Value(),
             Local<Number>::Cast(args[1])->Value(),
             Local<Number>::Cast(args[2])->Value()
         ));
-        float scale = static_cast<float>(Local<Number>::Cast(args[6])->Value());
-        model_matrix = glm::scale(model_matrix, glm::vec3(scale, scale, scale));
-        inColor.x = static_cast<float>(Local<Number>::Cast(args[3])->Value());
-        inColor.y = static_cast<float>(Local<Number>::Cast(args[4])->Value());
-        inColor.z = static_cast<float>(Local<Number>::Cast(args[5])->Value());
+        // float scale = static_cast<float>(Local<Number>::Cast(args[1])->Value());
+        // model_matrix = glm::scale(model_matrix, glm::vec3(scale, scale, scale));
     } else {
         auto box = static_cast<btRigidBody*>(
                 Local<Object>::Cast(args[0])->GetAlignedPointerFromInternalField(0));
         btTransform trans;
         box->getMotionState()->getWorldTransform(trans);
         trans.getOpenGLMatrix(glm::value_ptr(model_matrix));
-        inColor.x = static_cast<float>(Local<Number>::Cast(args[1])->Value());
-        inColor.y = static_cast<float>(Local<Number>::Cast(args[2])->Value());
-        inColor.z = static_cast<float>(Local<Number>::Cast(args[3])->Value());
     }
 
-
-    mvp = pv * model_matrix;
+    glm::mat4 mvp = proj_view_matrix * model_matrix;
     glUniformMatrix4fv(render_mvp_loc, 1, GL_FALSE, glm::value_ptr(mvp));
-    glUniform3f(render_inColor_loc, inColor.x, inColor.y, inColor.z);
-    glDrawArrays(GL_TRIANGLES, 0, 3*12);
 
 }
 

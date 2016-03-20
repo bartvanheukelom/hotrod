@@ -63,7 +63,7 @@ def main():
                     break
             if (skip): continue
 
-            funcNames.append(name)
+            funcNames.append(func)
 
             if not func['always']:
                 wl("#ifdef " + name)
@@ -87,7 +87,11 @@ def main():
 
         wl("DECLARE_FUNCTIONS_START")
         for fn in funcNames:
-            wl("\tDECLARE_FUNCTION(" + fn + ")")
+            if not fn['always']:
+                wl("#ifdef " + fn['name'])
+            wl("\tDECLARE_FUNCTION(" + fn['name'] + ")")
+            if not fn['always']:
+                wl("#endif")
         wl("DECLARE_FUNCTIONS_END")
 
 def multiple_replace(dict, text):

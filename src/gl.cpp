@@ -138,6 +138,12 @@ template<> int32_t* getArg<int32_t*>(ARG) {
 template<> uint32_t* getArg<uint32_t*>(ARG) {
     return abPtr<uint32_t>(arg);
 }
+template<> int64_t* getArg<int64_t*>(ARG) {
+    return abPtr<int64_t>(arg);
+}
+template<> uint64_t* getArg<uint64_t*>(ARG) {
+    return abPtr<uint64_t>(arg);
+}
 template<> const int8_t* getArg<const int8_t*>(ARG) {
     return abPtr<const int8_t>(arg);
 }
