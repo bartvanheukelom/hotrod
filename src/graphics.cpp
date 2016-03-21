@@ -18,10 +18,10 @@ using namespace v8;
 SDL_Window *mainwindow;
 SDL_GLContext maincontext;
 float aspect;
-GLuint render_prog;
+// GLuint render_prog;
 // GLuint vao2;
-GLint render_mvp_loc;
-GLint render_inColor_loc;
+// GLint render_mvp_loc;
+// GLint render_inColor_loc;
 glm::mat4 proj_view_matrix;
 glm::vec3 camPos(0, -30, 50);
 float camAngle = 0;
@@ -30,31 +30,9 @@ glm::vec3 camUp(0,0,1);
 int msX, msY;
 bool lockCam = false;
 
-void Initialize() {
-
-    ShaderInfo shader_info[] = {
-        { GL_VERTEX_SHADER, "../res/primitive_restart.vs.glsl" },
-        { GL_FRAGMENT_SHADER, "../res/primitive_restart.fs.glsl" },
-        { GL_NONE, NULL }
-    };
-
-    render_prog = LoadShaders(shader_info);
-    render_mvp_loc = glGetUniformLocation(render_prog, "mvp");
-    render_inColor_loc = glGetUniformLocation(render_prog, "inColor");
-    eval(*theContext, std::string("initGraphicsInner(") + to_string(render_prog) + ", " + to_string(render_inColor_loc) + ");");
-
-}
-
 void rotateVec(glm::vec3& vec, const glm::vec3 axis, float angle) {
 	glm::mat4 rotation = glm::rotate(glm::mat4(), angle, axis);
 	vec = glm::vec3(rotation * glm::vec4(vec, 1));
-}
-
-void Finalize() {
-    glUseProgram(0);
-    glDeleteProgram(render_prog);
-    // glDeleteBuffers(1, &vbo);
-    // glDeleteVertexArrays(1, &vao2);
 }
 
 void Reshape() {
@@ -106,28 +84,20 @@ void js_initGraphics(const FunctionCallbackInfo<Value>& args) {
     }
 
     // vsync 0 = off 1 = on
-    // SDL_GL_SetSwapInterval(1);
-    SDL_GL_SetSwapInterval(0);
+    SDL_GL_SetSwapInterval(1);
+    // SDL_GL_SetSwapInterval(0);
 
-    Initialize();
     Reshape();
 
 }
 
 void js_destroyGraphics(const FunctionCallbackInfo<Value>& args) {
-
-	Finalize();
-
     SDL_GL_DeleteContext(maincontext);
     SDL_DestroyWindow(mainwindow);
     SDL_Quit();
-
 }
 
-
-
-
-void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
+void js_updateCam(const FunctionCallbackInfo<Value>& args) {
     HandleScope fhs(theOneIsolate);
 
     const Uint8* state = SDL_GetKeyboardState(nullptr);
@@ -170,29 +140,27 @@ void js_prepareBoxRender(const FunctionCallbackInfo<Value>& args) {
 
 }
 
-void js_renderBox(const FunctionCallbackInfo<Value>& args) {
+void js_setMvp(const FunctionCallbackInfo<Value>& args) {
     HandleScope fhs(theOneIsolate);
 
     // ATTRIBUTE_ALIGNED16 is a bullet thing TODO what's its use, again?
     ATTRIBUTE_ALIGNED16(glm::mat4) model_matrix;
-    if (args[0]->IsNumber()) {
+    if (args[1]->IsNumber()) {
         model_matrix = glm::translate(glm::mat4(1), glm::vec3(
-            Local<Number>::Cast(args[0])->Value(),
             Local<Number>::Cast(args[1])->Value(),
-            Local<Number>::Cast(args[2])->Value()
+            Local<Number>::Cast(args[2])->Value(),
+            Local<Number>::Cast(args[3])->Value()
         ));
-        // float scale = static_cast<float>(Local<Number>::Cast(args[1])->Value());
-        // model_matrix = glm::scale(model_matrix, glm::vec3(scale, scale, scale));
     } else {
         auto box = static_cast<btRigidBody*>(
-                Local<Object>::Cast(args[0])->GetAlignedPointerFromInternalField(0));
+                Local<Object>::Cast(args[1])->GetAlignedPointerFromInternalField(0));
         btTransform trans;
         box->getMotionState()->getWorldTransform(trans);
         trans.getOpenGLMatrix(glm::value_ptr(model_matrix));
     }
 
     glm::mat4 mvp = proj_view_matrix * model_matrix;
-    glUniformMatrix4fv(render_mvp_loc, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniformMatrix4fv(Local<Int32>::Cast(args[0])->Value(), 1, GL_FALSE, glm::value_ptr(mvp));
 
 }
 
@@ -240,8 +208,8 @@ void graphics_setUpContext(Local<Context> ctx) {
 	FUN(initGraphics)
 	FUN(destroyGraphics)
     FUN(nativeStep)
-	FUN(prepareBoxRender)
-	FUN(renderBox)
+	FUN(updateCam)
+	FUN(setMvp)
 	#undef FUN
 
 }

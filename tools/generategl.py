@@ -76,6 +76,7 @@ def main():
                     wel()
                     skip = True
                     break
+                p['type'] = p['type'].replace(' const*', '*')
             if (skip): continue
 
             funcNames.append(func)
@@ -85,19 +86,32 @@ def main():
             wl("FUNCTION_SIGNATURE(" + name + ") {")
             first = True
             wl("\tFUNCTION_BODY_START(" + str(len(params)) + ")")
+
+            # collect args
+            for i, p in enumerate(params):
+                t = p['type']
+                if t.endswith('**'):
+                    t = t.replace('**', '*')
+                    p['&'] = True
+
+                wl("\t" + t + " a" + str(i) + " = getArg<" + t + ">(args[" + str(i) + "]); // " + p['full'])
+
+            # call
             w("\t")
             if ret != 'void':
                 w(ret + " r = ")
-            wl(name + "(")
+            w(name + "(")
             for i, p in enumerate(params):
                 if (not first):
-                    wl(",")
+                    w(",")
                 else:
                     first = False
-                #w("\t\tFUNCTION_BODY_ARG(" + str(i) + ", " + type + ")")
-                w("\t\tgetArg<" + p['type'] + ">(args[" + str(i) + "]) /* " + p['full'] + " */")
-            wel()
-            wl("\t);")
+
+                # TODO don't assume single element arrays but allow JS arrays
+                if "&" in p:
+                    w("&")
+                w("a" + str(i))
+            wl(");")
             if ret != 'void':
                 wl("\tFUNCTION_BODY_RETURN(r)")
             wl("}")

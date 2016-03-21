@@ -33,7 +33,7 @@ public:
 };
 
 
-string getFileContents(const char* filename) {
+string getFileContents(string filename) {
     ifstream in(filename, ios::in | ios::binary);
     if (in.fail()) throw runtime_error("ifstream error " + errno);
 
@@ -44,6 +44,15 @@ string getFileContents(const char* filename) {
     in.read(&contents[0], static_cast<streamsize>(contents.size()));
     in.close();
     return(contents);
+}
+
+void js_getFileContents(const FunctionCallbackInfo<Value>& args) {
+    HandleScope fhs(theOneIsolate);
+    string data = getFileContents(fromJsString(args[0]));
+    // copy into ArrayBuffer
+    auto buf = ArrayBuffer::New(theOneIsolate, data.size());
+    data.copy(reinterpret_cast<char*>(buf->GetContents().Data()), data.size());
+    args.GetReturnValue().Set(buf);
 }
 
 Local<String> jsString(const string& src) {
@@ -90,6 +99,26 @@ void eval(const Local<Context>& ctx, const string& js) {
     code->Run(ctx);
 }
 
+Local<ArrayBuffer> stringToArrayBuffer(string data) {
+    auto buf = ArrayBuffer::New(theOneIsolate, data.size());
+    data.copy(reinterpret_cast<char*>(buf->GetContents().Data()), data.size());
+    return buf;
+}
+
+void js_stringToUtf8(const FunctionCallbackInfo<Value>& args) {
+    HandleScope fhs(theOneIsolate);
+    // TODO skip string
+    string data = fromJsString(args[0]);
+    args.GetReturnValue().Set(stringToArrayBuffer(data));
+}
+
+void js_stringFromUtf8(const FunctionCallbackInfo<Value>& args) {
+    HandleScope fhs(theOneIsolate);
+    args.GetReturnValue().Set(String::NewFromUtf8(theOneIsolate, reinterpret_cast<char*>(
+        Local<ArrayBuffer>::Cast(args[0])->GetContents().Data()
+    ), NewStringType::kNormal).ToLocalChecked());
+}
+
 void js_log(const FunctionCallbackInfo<Value>& args) {
     for (int a = 0; a < args.Length(); a++) {
         if (a != 0) cout << " ";
@@ -117,6 +146,9 @@ Local<Context> setUpContext() {
     #define FUN(NAME) glob->Set(ctx, jsString(#NAME), Function::New(ctx, &js_ ## NAME).ToLocalChecked());
     FUN(runScript)
     FUN(log)
+    FUN(getFileContents)
+    FUN(stringFromUtf8)
+    FUN(stringToUtf8)
     #undef FUN
 
     bullet_setUpContext(ctx);

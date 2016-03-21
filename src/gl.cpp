@@ -78,9 +78,6 @@ P* abPtr(const v8::Local<v8::Value>& arg) {
 template<> void* getArg<void*>(ARG) {
     return abPtr<void>(arg);
 }
-template<> void** getArg<void**>(ARG) {
-    return abPtr<void*>(arg);
-}
 template<> double* getArg<double*>(ARG) {
     return abPtr<double>(arg);
 }
@@ -91,9 +88,6 @@ template<> const void* getArg<const void*>(ARG) {
     return abPtr<const void>(arg);
 }
 template<> const void* const* getArg<const void* const*>(ARG) {
-    return abPtr<const void*>(arg);
-}
-template<> const void** getArg<const void**>(ARG) {
     return abPtr<const void*>(arg);
 }
 template<> const double* getArg<const double*>(ARG) {
@@ -112,9 +106,6 @@ template<> char* getArg<char*>(ARG) {
 }
 template<> const char* getArg<const char*>(ARG) {
     return abPtr<const char>(arg);
-}
-template<> const char** getArg<const char**>(ARG) {
-    return abPtr<const char*>(arg);
 }
 template<> const char* const* getArg<const char* const*>(ARG) {
     return abPtr<const char*>(arg);
@@ -147,17 +138,8 @@ template<> uint64_t* getArg<uint64_t*>(ARG) {
 template<> const int8_t* getArg<const int8_t*>(ARG) {
     return abPtr<const int8_t>(arg);
 }
-template<> const int8_t** getArg<const int8_t**>(ARG) {
-    return abPtr<const int8_t*>(arg);
-}
-template<> const int8_t* const* getArg<const int8_t* const*>(ARG) {
-    return abPtr<const int8_t*>(arg);
-}
 template<> const uint8_t* getArg<const uint8_t*>(ARG) {
     return abPtr<const uint8_t>(arg);
-}
-template<> const uint8_t** getArg<const uint8_t**>(ARG) {
-    return abPtr<const uint8_t*>(arg);
 }
 template<> const int16_t* getArg<const int16_t*>(ARG) {
     return abPtr<const int16_t>(arg);
