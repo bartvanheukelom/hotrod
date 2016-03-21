@@ -9,20 +9,15 @@
 
 #include "common.h"
 
-#include "LoadShaders.h"
-extern GLuint LoadShaders(ShaderInfo *shaderinfo);
-
 using namespace std;
 using namespace v8;
 
 SDL_Window *mainwindow;
 SDL_GLContext maincontext;
 float aspect;
-// GLuint render_prog;
-// GLuint vao2;
-// GLint render_mvp_loc;
-// GLint render_inColor_loc;
+
 glm::mat4 proj_view_matrix;
+
 glm::vec3 camPos(0, -30, 50);
 float camAngle = 0;
 float camTilt = 0.3;
@@ -143,8 +138,7 @@ void js_updateCam(const FunctionCallbackInfo<Value>& args) {
 void js_setMvp(const FunctionCallbackInfo<Value>& args) {
     HandleScope fhs(theOneIsolate);
 
-    // ATTRIBUTE_ALIGNED16 is a bullet thing TODO what's its use, again?
-    ATTRIBUTE_ALIGNED16(glm::mat4) model_matrix;
+    glm::mat4 model_matrix;
     if (args[1]->IsNumber()) {
         model_matrix = glm::translate(glm::mat4(1), glm::vec3(
             Local<Number>::Cast(args[1])->Value(),
