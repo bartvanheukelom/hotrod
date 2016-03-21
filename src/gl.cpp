@@ -178,10 +178,20 @@ template<> const uint64_t* getArg<const uint64_t*>(ARG) {
     return abPtr<const uint64_t>(arg);
 }
 
+bool toJsReturn(bool v) { return v; }
+double toJsReturn(float v) { return v; }
+double toJsReturn(double v) { return v; }
+int32_t toJsReturn(int32_t v) { return v; }
+uint32_t toJsReturn(uint32_t v) { return v; }
+// TODO not safe (return arraybuffer?)
+double toJsReturn(int64_t v) { return (double) v; }
+double toJsReturn(uint64_t v) { return (double) v; }
+
 
 // these macros are used in the generated file
 #define FUNCTION_SIGNATURE(NAME) void js_ ## NAME (const FunctionCallbackInfo<Value>& args)
 #define FUNCTION_BODY_START(LEN) checkParams<LEN>(args);
+#define FUNCTION_BODY_RETURN(R) args.GetReturnValue().Set(toJsReturn(R));
 
 // TODO
 #define DECLARE_FUNCTIONS_START void gl_setUpContext(v8::Local<v8::Context> ctx) {

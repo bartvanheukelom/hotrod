@@ -36,13 +36,28 @@ def main():
 
         for func in json_in['functions']:
 
-            print(func)
+            #print(func)
             name = func['name']
             params = func['parameters']
+            ret = func['return_type'];
 
-            if (func['return_type'] != "void"):
-                print("SKIP " + name + " not void but " + func['return_type'])
-                wl("// SKIP " + name + " because it returns " + func['return_type'])
+            if ret != 'void': print(name + ": " + ret)
+
+            if name in [
+                "glCreateSyncFromCLeventARB"
+            ]:
+                print("SKIP " + name + " blacklisted")
+                wl("// SKIP " + name + " blacklisted")
+                wel()
+                continue
+
+            if ret in [
+                "GLintptr",
+                "GLsizeiptr",
+                "GLvdpauSurfaceNV"
+            ]:
+                print("SKIP " + name + " for return type " + ret)
+                wl("// SKIP " + name + " for return type " + ret)
                 wel()
                 continue
 
@@ -70,7 +85,10 @@ def main():
             wl("FUNCTION_SIGNATURE(" + name + ") {")
             first = True
             wl("\tFUNCTION_BODY_START(" + str(len(params)) + ")")
-            wl("\t" + name + "(")
+            w("\t")
+            if ret != 'void':
+                w(ret + " r = ")
+            wl(name + "(")
             for i, p in enumerate(params):
                 if (not first):
                     wl(",")
@@ -80,6 +98,8 @@ def main():
                 w("\t\tgetArg<" + p['type'] + ">(args[" + str(i) + "]) /* " + p['full'] + " */")
             wel()
             wl("\t);")
+            if ret != 'void':
+                wl("\tFUNCTION_BODY_RETURN(r)")
             wl("}")
             if not func['always']:
                 wl("#endif")
