@@ -167,6 +167,8 @@ void js_BulletBody_destroy(const FunctionCallbackInfo<Value>& args) {
     
     bi->world->collisionShapes->remove(bi->shape);
     delete bi->shape;
+    
+    deletePointerFromObject<BulletBody>(args.This());
 
 }
 

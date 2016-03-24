@@ -127,6 +127,10 @@ void js_log(const FunctionCallbackInfo<Value>& args) {
     cout << endl;
 }
 
+void bullet_setUpContext(Local<Context> ctx);
+void graphics_setUpContext(Local<Context> ctx);
+void gl_setUpContext(Local<Context> ctx);
+
 Local<Context> setUpContext() {
 
     auto jspt = ObjectTemplate::New(theOneIsolate);

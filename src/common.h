@@ -29,7 +29,8 @@ template <typename T>
 T* getPointerFromObject(Local<Object> obj) {
 	return static_cast<T*>(obj->GetAlignedPointerFromInternalField(0));
 }
-
-void bullet_setUpContext(Local<Context> ctx);
-void graphics_setUpContext(Local<Context> ctx);
-void gl_setUpContext(Local<Context> ctx);
+template <typename T>
+T* deletePointerFromObject(Local<Object> obj) {
+	delete getPointerFromObject<T>(obj);
+	obj->SetAlignedPointerInInternalField(0, nullptr);
+}
