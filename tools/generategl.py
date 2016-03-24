@@ -4,8 +4,8 @@ import json
 import re
 
 #input output files
-IN_FILE = 'glew_h.json'
-OUT_FILE = '../src/gl.cpp.incl'
+IN_FILE = '../bin/gen/glew_h.json'
+OUT_FILE = '../bin/gen/gl.cpp.incl'
 
 #map some OpenGL types to V8 types
 unsigned = re.compile('unsigned|ubyte|ushort|uint|bitfield|boolean')

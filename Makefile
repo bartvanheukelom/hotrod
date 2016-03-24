@@ -4,6 +4,7 @@ appName=hotrod
 br: build run
 
 generate:
+	mkdir -p bin/gen
 	cd tools && ./mapglew.py
 	cd tools && ./generategl.py
 	cd tools && ./generateglconstants.py

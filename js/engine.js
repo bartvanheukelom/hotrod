@@ -68,7 +68,7 @@ function defClass(namespace, name, constructor, methods) {
 
 }
 
-runScript("../js/glconstants.js");
+runScript("../bin/gen/glconstants.js");
 
 function tmp_f5pressed() {
 	global.gameBase = "../../tankvolution/hotrodgame";

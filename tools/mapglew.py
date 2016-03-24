@@ -8,7 +8,7 @@ import re
 import json
 
 PATH_GL = '/usr/include/GL/glew.h'
-FILE_JSON = 'glew_h.json'
+FILE_JSON = '../bin/gen/glew_h.json'
 
 #constant and function patterns
 constant_pattern = """

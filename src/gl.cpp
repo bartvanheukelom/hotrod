@@ -39,4 +39,4 @@ void gl_setUpContext(v8::Local<v8::Context> ctx) {
 #define DECLARE_FUNCTIONS_END }
 
 // include the generated file
-#include "gl.cpp.incl"
+#include "../bin/gen/gl.cpp.incl"

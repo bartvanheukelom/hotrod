@@ -4,8 +4,8 @@ import json
 import re
 
 #input output files
-IN_FILE = 'glew_h.json'
-OUT_FILE = '../js/glconstants.js'
+IN_FILE = '../bin/gen/glew_h.json'
+OUT_FILE = '../bin/gen/glconstants.js'
 
 
 def main():
