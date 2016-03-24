@@ -8,35 +8,18 @@
 using namespace std;
 using namespace v8;
 
-void js_Box_destroy(const FunctionCallbackInfo<Value>& args) {
-    // HandleScope fhs(theOneIsolate);
-    // cout << "super destroy box" << endl;
-    //
-    // auto box = static_cast<btRigidBody*>(args.This()->GetAlignedPointerFromInternalField(0));
-    //
-}
-
-void js_BulletBody_applyImpulse(const FunctionCallbackInfo<Value>& args) {
-    HandleScope fhs(theOneIsolate);
-    auto body = getPointerFromObject<btRigidBody>(args.This());
-    body->applyCentralImpulse(btVector3(
-        Local<Number>::Cast(args[0])->Value(),
-        Local<Number>::Cast(args[1])->Value(),
-        Local<Number>::Cast(args[2])->Value()
-    ));
-}
-
-void js_BulletBody_getPosition(const FunctionCallbackInfo<Value>& args) {
-    HandleScope fhs(theOneIsolate);
-    auto body = getPointerFromObject<btRigidBody>(args.This());
-    auto pos = body->getCenterOfMassPosition();
-    auto ctx = args.This()->CreationContext();
-    auto dest = Local<Object>::Cast(args[0]);
-    dest->Set(ctx, jsString("x"), Number::New(theOneIsolate, pos.x()));
-    dest->Set(ctx, jsString("y"), Number::New(theOneIsolate, pos.y()));
-}
+class js_BulletWorld;
+void js_BulletBody_destroy(const FunctionCallbackInfo<Value>& args);
+void js_BulletBody_applyImpulse(const FunctionCallbackInfo<Value>& args);
+void js_BulletBody_getPosition(const FunctionCallbackInfo<Value>& args);
 
 Persistent<FunctionTemplate> BulletWorldTemplate;
+
+struct BulletBody {
+    btRigidBody* body;
+    btCollisionShape* shape;
+    js_BulletWorld* world;
+};
 
 class js_BulletWorld {
 public:
@@ -137,9 +120,15 @@ public:
 
         w->physicsWorld->addRigidBody(body);
 
-        auto ret = createPointerObject(body);
+        auto bi = new BulletBody();
+        bi->body = body;
+        bi->shape = colShape;
+        bi->world = w;
+        auto ret = createPointerObject(bi);
         args.GetReturnValue().Set(ret);
         auto ctx = args.This()->CreationContext();
+        ret->Set(ctx, jsString("destroy"),
+            Function::New(ctx, &js_BulletBody_destroy).ToLocalChecked());
         ret->Set(ctx, jsString("applyImpulse"),
             Function::New(ctx, &js_BulletBody_applyImpulse).ToLocalChecked());
         ret->Set(ctx, jsString("getPosition"),
@@ -164,6 +153,42 @@ private:
     }
 
 };
+
+
+void js_BulletBody_destroy(const FunctionCallbackInfo<Value>& args) {
+    HandleScope fhs(theOneIsolate);
+    auto bi = getPointerFromObject<BulletBody>(args.This());
+
+    auto body = bi->body;
+    if (body->getMotionState() != nullptr)
+        delete body->getMotionState();
+    bi->world->physicsWorld->removeCollisionObject(body);
+    delete body;
+    
+    bi->world->collisionShapes->remove(bi->shape);
+    delete bi->shape;
+
+}
+
+void js_BulletBody_applyImpulse(const FunctionCallbackInfo<Value>& args) {
+    HandleScope fhs(theOneIsolate);
+    auto body = getPointerFromObject<BulletBody>(args.This())->body;
+    body->applyCentralImpulse(btVector3(
+        Local<Number>::Cast(args[0])->Value(),
+        Local<Number>::Cast(args[1])->Value(),
+        Local<Number>::Cast(args[2])->Value()
+    ));
+}
+
+void js_BulletBody_getPosition(const FunctionCallbackInfo<Value>& args) {
+    HandleScope fhs(theOneIsolate);
+    auto body = getPointerFromObject<BulletBody>(args.This())->body;
+    auto pos = body->getCenterOfMassPosition();
+    auto ctx = args.This()->CreationContext();
+    auto dest = Local<Object>::Cast(args[0]);
+    dest->Set(ctx, jsString("x"), Number::New(theOneIsolate, pos.x()));
+    dest->Set(ctx, jsString("y"), Number::New(theOneIsolate, pos.y()));
+}
 
 
 void bullet_setUpContext(Local<Context> ctx) {

@@ -146,7 +146,7 @@ void js_setMvp(const FunctionCallbackInfo<Value>& args) {
             Local<Number>::Cast(args[3])->Value()
         ));
     } else {
-        auto box = static_cast<btRigidBody*>(
+        auto box = static_cast<btRigidBody*>( // TODO BulletWorld
                 Local<Object>::Cast(args[1])->GetAlignedPointerFromInternalField(0));
         btTransform trans;
         box->getMotionState()->getWorldTransform(trans);
