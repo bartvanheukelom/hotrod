@@ -16,6 +16,13 @@ P* abPtr(const v8::Local<v8::Value>& arg) {
 
 // ================== FROM V8 TO C++ ================== //
 
+// checkParams
+template <int len>
+void checkParams(const v8::FunctionCallbackInfo<Value>& args) {
+    if (args.Length() < len) std::cout << "too few args" << std::endl;
+}
+template<> void checkParams<0>(const v8::FunctionCallbackInfo<Value>& args) {}
+
 
 // getArg variations
 #define ARG const v8::Local<Value>& arg
