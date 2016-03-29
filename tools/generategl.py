@@ -90,11 +90,19 @@ def main():
             # collect args
             for i, p in enumerate(params):
                 t = p['type']
+                ptr = 'Num'
+                if t == 'GLsync': t = '__GLsync*'
                 if t.endswith('**'):
                     t = t.replace('**', '*')
                     p['&'] = True
+                if t.endswith('*'):
+                    t = t.replace('*', '')
+                    ptr = 'Ptr'
 
-                wl("\t" + t + " a" + str(i) + " = getArg<" + t + ">(args[" + str(i) + "]); // " + p['full'])
+                if ptr == 'Num' and t.startswith('const '):
+                    t = t.replace('const ', '')
+
+                wl("\tauto a" + str(i) + " = get" + ptr + "Arg<" + t + ">(args[" + str(i) + "]); // " + p['full'])
 
             # call
             w("\t")

@@ -20,9 +20,9 @@ template<> void checkParams<0>(const v8::FunctionCallbackInfo<Value>& args) {}
 
 // getArg specializations
 // struct is arraybuffer
-template<> __GLsync* getArg<__GLsync*>(ARG) {
-    return abPtr<__GLsync>(arg);
-}
+// template<> __GLsync* getArg<__GLsync*>(ARG) {
+//     return abPtr<__GLsync>(arg);
+// }
 
 void gl_setUpContextIncl(v8::Local<v8::Context> ctx);
 void gl_setUpContext(v8::Local<v8::Context> ctx) {
