@@ -12,7 +12,7 @@ The Javascript is executed using the V8 runtime.
 
 #### Dependencies
 
-##### V8 (version 5.1)
+##### V8 (version 5.0)
 
 - https://github.com/v8/v8/wiki/Using%20Git
 - https://github.com/v8/v8/wiki/Building%20with%20Gyp
