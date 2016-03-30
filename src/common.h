@@ -10,8 +10,8 @@
 #include <cerrno>
 #include <stdexcept>
 
-#include "include/libplatform/libplatform.h"
-#include "include/v8.h"
+#include <include/libplatform/libplatform.h>
+#include <include/v8.h>
 
 using namespace std;
 using namespace v8;

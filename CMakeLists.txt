@@ -23,8 +23,8 @@ add_executable(hotrod ${sources})
 # which libraries to link to
 target_link_libraries(hotrod
 	SDL2 GL GLEW
-	v8_base v8_external_snapshot v8_libbase v8_libplatform
-	dl rt
+	v8_base v8_libbase v8_external_snapshot v8_libplatform
+	rt dl
 	BulletDynamics_gmake_x64_release
 	BulletCollision_gmake_x64_release
 	LinearMath_gmake_x64_release
