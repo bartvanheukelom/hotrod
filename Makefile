@@ -5,9 +5,7 @@ br: build run
 
 generate:
 	mkdir -p bin/gen
-	cd tools && ./mapglew.py
-	cd tools && ./generategl.py
-	cd tools && ./generateglconstants.py
+	cd tools && ./mapglew.py && ./generategl.py
 
 build:
 	mkdir -p bin/cmake
