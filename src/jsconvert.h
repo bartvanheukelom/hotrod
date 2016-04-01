@@ -7,9 +7,25 @@
 
 template <typename P>
 P* abPtr(const v8::Local<v8::Value>& arg) {
-    if (arg->IsNumber()) return reinterpret_cast<P*>((size_t) v8::Local<v8::Number>::Cast(arg)->Value());
-    if (arg->IsNull()) return nullptr;
-    return reinterpret_cast<P*>(v8::Local<v8::ArrayBuffer>::Cast(arg)->GetContents().Data());
+    if (arg->IsArrayBuffer())
+        return reinterpret_cast<P*>(
+            v8::Local<v8::ArrayBuffer>::Cast(arg)->GetContents().Data()
+        );
+    if (arg->IsArrayBufferView())
+        return reinterpret_cast<P*>(
+            v8::Local<v8::ArrayBufferView>::Cast(arg)->Buffer()->GetContents().Data()
+        );
+    if (arg->IsObject())
+        return reinterpret_cast<P*>(
+            v8::Local<v8::Object>::Cast(arg)->GetAlignedPointerFromInternalField(0)
+        );
+    if (arg->IsNull())
+        return nullptr;
+    // for offsets
+    if (arg->IsNumber())
+        return reinterpret_cast<P*>((size_t) v8::Local<v8::Number>::Cast(arg)->Value());
+    // TODO throw
+    return nullptr;
 }
 
 
